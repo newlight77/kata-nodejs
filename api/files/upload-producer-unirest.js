@@ -20,9 +20,6 @@ var initRoutes = function (app) {
     winston.info('/post/unirest/consumer/busboy');
     unirest("POST", "http://localhost:8000/consumer/busboy")
     .headers(headers)
-    .field({
-      name: 'kong'
-    })
     .multipart([multipart])
     .end(function (res) {
       if (res.error) {
@@ -36,11 +33,8 @@ var initRoutes = function (app) {
   //KO
   app.post("/post/unirest/multipart/consumer/multer", function(httpRequest, httpResponse) {
     winston.info('/post/unirest/multipart/consumer/multer');
-    unirest("POST", "http://localhost:8000/consumer/multer")
+    unirest("POST", "http://localhost:8080/consumer/multer")
     .header(headers)
-    .field({
-      name: 'kong'
-    })
     .multipart([multipart])
     .end(function (res) {
       if (res.error) {
