@@ -3,7 +3,6 @@
 const winston = require('winston');
 var Loki = require('lokijs');
 var lokiUtil = require('../../util/loki-util');
-var userApi = require('./user-api');
 
 const db = new Loki('uploads/users.json', {
   persistenceMethod: 'fs'
