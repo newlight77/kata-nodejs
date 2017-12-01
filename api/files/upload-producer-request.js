@@ -8,7 +8,7 @@ var request = require('request');
 var initRoutes = function(app) {
 
   app.post("/post/request", function() {
-    fs.createReadStream('/Users/kong/Downloads/justificatif.pdf').pipe(request.post('http://localhost:8080/upload?filenanme=test.js'));
+    fs.createReadStream('./fs.gz').pipe(request.post('http://localhost:8080/upload?filenanme=test.json'));
   });
 
 
@@ -23,7 +23,7 @@ var initRoutes = function(app) {
       },
       formData: {
         file: {
-          value: fs.createReadStream("/Users/kong/Downloads/justificatif.pdf"),
+          value: fs.createReadStream("./fs.gz"),
           options: {
             filename: 'justificatif.pdf',
             contentType: null
@@ -52,7 +52,7 @@ var initRoutes = function(app) {
       },
       formData: {
         file: {
-          value: fs.createReadStream("/Users/kong/Downloads/justificatif.pdf"),
+          value: fs.createReadStream("./fs.gz"),
           options: {
             filename: 'justificatif.pdf',
             contentType: null
@@ -81,7 +81,7 @@ var initRoutes = function(app) {
       },
       formData: {
         file: {
-          value: fs.createReadStream("/Users/kong/Downloads/justificatif.pdf"),
+          value: fs.createReadStream("./fs.gz"),
           options: {
             filename: 'justificatif.pdf',
             contentType: null
@@ -111,7 +111,7 @@ var initRoutes = function(app) {
       },
       formData: {
         file: {
-          value: fs.createReadStream("/Users/kong/Downloads/justificatif.pdf"),
+          value: fs.createReadStream("./fs.gz"),
           options: {
             filename: 'justificatif.pdf',
             contentType: null

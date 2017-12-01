@@ -4,7 +4,8 @@ var winston = require('winston');
 var fs = require('fs');
 var unirest = require('unirest');
 var request = require('request');
-
+var zlib = require('zlib');
+var fstream = require('fstream');
 
 var headers = {
   "cache-control": "no-cache",
@@ -12,7 +13,7 @@ var headers = {
 };
 
 var multipart = {
-  "body": fs.createReadStream("/Users/kong/Downloads/justificatif.pdf")
+  "body": fs.createReadStream("./fs.gz")
 };
 
 var initRoutes = function (app) {
@@ -67,13 +68,41 @@ var initRoutes = function (app) {
     .field({
       name: 'kong'
     })
-    .attach('file', 'https://cdn.pixabay.com/photo/2013/07/12/12/40/smiley-146093_1280.png')
+    .attach('file', 'http://localhost:8000/header.jpg')
     .end(function (res) {
       winston.info(res.body);
       httpResponse.send(res.body);
     });
   });
 
+  //KO
+  app.post("/post/unirest/multipart/upload", function(httpRequest, httpResponse) {
+    winston.info('/post/unirest/multipart/upload');
+    unirest("POST", "http://localhost:8080/upload")
+    .header(headers)
+    // .multipart([{
+    //   "body": 'https://cdn.pixabay.com/photo/2013/07/12/12/40/smiley-146093_1280.png'
+    // }])
+    .field({
+      files: 'http://localhost:8000/header.jpg'
+    })
+    .end(function (res) {
+      if (res.error) {
+        throw new Error(res.error);
+      }
+      winston.info(res.body);
+      httpResponse.send(res);
+    });
+  });
+
+  app.post("/post/unirest/upload", function(httpRequest, httpResponse) {
+    unirest.post('http://localhost:8080/upload/multipart')
+    .headers({'Content-Type': 'multipart/form-data'})
+    .attach('files', 'http://localhost:8000/header.jpg') // Attachment
+    .end(function (response) {
+      console.log(response.body);
+    });
+  });
 };
 
 module.exports.initRoutes = initRoutes;
