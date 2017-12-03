@@ -16,6 +16,7 @@ lokiUtil.cleanFolder(UPLOAD_PATH);
 
 const save = async function (data) {
   winston.info(data, 'data');
+  
   try {
     const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
     const result = col.insert(data);

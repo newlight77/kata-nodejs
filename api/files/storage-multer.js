@@ -5,6 +5,7 @@ var fs = require('fs');
 var multer = require('multer');
 var Loki = require('lokijs');
 var lokiUtil = require('../../util/loki-util');
+var filesDb = require('./files-db');
 
 const DB_NAME = 'db.json';
 const COLLECTION_NAME = 'images';
@@ -24,12 +25,9 @@ var initRoutes = function(app) {
     winston.info(httpRequest.body, 'Body');
     winston.info(httpRequest.file, 'file');
     winston.info(httpRequest.files, 'files');
-    try {
-      const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
-      const data = col.insert(httpRequest.file);
 
-      winston.info('saveDatabase');
-      db.saveDatabase();
+    try {
+      let data = await filesDb.save(httpRequest.file);
       httpResponse.send({
         id: data.$loki,
         fileName: data.filename,
@@ -43,10 +41,8 @@ var initRoutes = function(app) {
 
   app.post('/consumer/multer/photos', upload.array('photos', 12), async(httpRequest, httpResponse) => {
     try {
-      const col = await lokiUtil.loadCollection(COLLECTION_NAME, db)
-      let data = [].concat(col.insert(httpRequest.files));
+      let data = await filesDb.save(httpRequest.files);
 
-      db.saveDatabase();
       httpResponse.send(data.map(x => ({
         id: x.$loki,
         fileName: x.filename,
@@ -59,7 +55,7 @@ var initRoutes = function(app) {
 
   app.get('/images', async(httpRequest, httpResponse) => {
     try {
-      const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
+      let col = await filesDb.findAll();
       httpResponse.send(col.data);
     } catch (err) {
       winston.error('error while retrieving images');
@@ -68,20 +64,7 @@ var initRoutes = function(app) {
   });
 
   app.get('/images/:id', async(httpRequest, httpResponse) => {
-    try {
-      const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
-      const result = col.get(httpRequest.params.id);
-
-      if (!result) {
-        httpResponse.sendStatus(404);
-        return;
-      };
-
-      httpResponse.setHeader('Content-Type', result.mimetype);
-      fs.createReadStream(path.join(UPLOAD_PATH, result.filename)).pipe(httpResponse);
-    } catch (err) {
-      httpResponse.sendStatus(400);
-    }
+    await filesDb.get(httpRequest.params.id, httpResponse);
   });
 
 };

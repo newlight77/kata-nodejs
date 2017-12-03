@@ -3,21 +3,21 @@
 var winston = require('winston');
 
 var zipfiles = require('./zip-files');
-var consumerbusboy = require('./upload-consumer-busboy');
-var consumermulter = require('./upload-consumer-multer');
-var producerrequest = require('./upload-producer-request');
-var producerunirest = require('./upload-producer-unirest');
+var senderbusboy = require('./storage-busboy');
+var sendermulter = require('./storage-multer');
+var senderrequest = require('./sender-request');
+var senderunirest = require('./sender-unirest');
 
 var initRoutes = function (app) {
   zipfiles.init();
   winston.info('./api/files/zip-files.js');
-  consumerbusboy.initRoutes(app);
+  senderbusboy.initRoutes(app);
   winston.info('./api/files/upload-consumer-busboy.js');
-  consumermulter.initRoutes(app);
+  sendermulter.initRoutes(app);
   winston.info('./api/files/upload-consumer-multer.js');
-  producerrequest.initRoutes(app);
+  senderrequest.initRoutes(app);
   winston.info('./api/files/upload-producer-request.js');
-  producerunirest.initRoutes(app);
+  senderunirest.initRoutes(app);
   winston.info('./api/files/upload-producer-unirest.js');
 };
 
