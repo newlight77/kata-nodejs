@@ -41,14 +41,19 @@ const save = async function (data) {
   } catch (err) {
     throw "unable to store data"
   }
-  //httpResponse.send('good');
 };
 
 const findAll = async function() {
   try {
     const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
     // winston.info('result', col.data);
-    return col.data;
+    let data = col.data.map(x => ({
+      id: x.$loki,
+      fileName: x.filename,
+      originalName: x.originalname
+    }))
+
+    return data;
   } catch (err) {
     winston.error('error while retrieving files');
   }

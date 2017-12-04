@@ -285,7 +285,7 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8000/upload/multipart",
+			"name": "http://localhost:8000/upload",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -321,7 +321,7 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8000/post/unirest/multipart/upload/multipart",
+			"name": "http://localhost:8000/upload/multipart copy",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -330,24 +330,112 @@
 						"value": "application/x-www-form-urlencoded"
 					}
 				],
-				"body": {},
+				"body": {
+					"mode": "file",
+					"file": {
+						"src": ""
+					}
+				},
 				"url": {
-					"raw": "http://localhost:8000//post/unirest/multipart/upload/multipart",
+					"raw": "http://localhost:8080/upload?filename=test.json",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upload"
+					],
+					"query": [
+						{
+							"key": "filename",
+							"value": "test.json",
+							"equals": true
+						}
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/consumer/multer",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"value": "",
+							"description": "",
+							"type": "file"
+						},
+						{
+							"key": "file",
+							"value": "",
+							"description": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/consumer/multer/files",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"",
-						"post",
-						"unirest",
-						"multipart",
-						"upload",
-						"multipart"
+						"consumer",
+						"multer",
+						"files"
 					]
 				},
-				"description": null
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/consumer/multer",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"value": "",
+							"description": "",
+							"type": "file"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/consumer/multer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"consumer",
+						"multer"
+					]
+				},
+				"description": ""
 			},
 			"response": []
 		}
