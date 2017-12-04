@@ -20,23 +20,38 @@ const db = new Loki('uploads/d.json', {
 lokiUtil.cleanFolder(UPLOAD_PATH);
 
 var initRoutes = function(app) {
-  app.post('/consumer/multer', upload.single('file'), async(httpRequest, httpResponse) => {
+  app.post('/consumer/multer', upload.single('file'), async (httpRequest, httpResponse) => {
     winston.info('receiving file', httpRequest.file);
-    winston.info(httpRequest.body, 'Body');
-    winston.info(httpRequest.file, 'file');
-    winston.info(httpRequest.files, 'files');
+    winston.info('Body', httpRequest.body);
+    winston.info('file', httpRequest.file);
+    winston.info('files', httpRequest.files);
+
+    // let data = filesDb.save(httpRequest.file)
+    // .then((data) => {
+    //   winston.info('data ---- ', data);
+    //   httpResponse.send({
+    //     id: data.$loki,
+    //     fileName: data.filename,
+    //     originalName: data.originalname
+    //   });
+    //   winston.info('data ---- end');
+    // }, (error) => {
+    //   winston.error('error save file', httpRequest.file);
+    //   httpResponse.sendStatus(400);
+    // });
 
     try {
       let data = await filesDb.save(httpRequest.file);
+      winston.info('data', httpRequest.files);
       httpResponse.send({
         id: data.$loki,
         fileName: data.filename,
         originalName: data.originalname
       });
     } catch (err) {
+      winston.error('error save file', httpRequest.file);
       httpResponse.sendStatus(400);
     }
-    //httpResponse.send('good');
   });
 
   app.post('/consumer/multer/photos', upload.array('photos', 12), async(httpRequest, httpResponse) => {

@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "http://localhost:8000/post/unirest/consumer/multer",
+			"name": "http://localhost:8000/unirest/multipart/busboy",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -16,16 +16,38 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "http://localhost:8000/post/unirest/consumer/multer",
+					"raw": "http://localhost:8000/unirest/multipart/busboy",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"post",
 						"unirest",
-						"consumer",
+						"multipart",
+						"busboy"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/unirest/multipart/multer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/unirest/multipart/multer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"unirest",
+						"multipart",
 						"multer"
 					]
 				},
@@ -34,23 +56,131 @@
 			"response": []
 		},
 		{
-			"name": "http://localhost:8000/post/unirest/consumer/multer",
+			"name": "http://localhost:8000/unirest/attach/multer",
 			"request": {
 				"method": "POST",
 				"header": [],
-				"body": {},
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
 				"url": {
-					"raw": "http://localhost:8000/post/unirest/consumer/multer",
+					"raw": "http://localhost:8000/unirest/attach/multer",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"post",
 						"unirest",
-						"consumer",
+						"attach",
 						"multer"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/unirest/attach/multer/streaming",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8000/unirest/attach/multer/streaming",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"unirest",
+						"attach",
+						"multer",
+						"streaming"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/unirest/attach/upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8000/unirest/attach/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"unirest",
+						"attach",
+						"upload"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/unirest/multipart/upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8000/unirest/multipart/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"unirest",
+						"multipart",
+						"upload"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/unirest/multipart/field/upload",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8000/unirest/multipart/field/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"unirest",
+						"multipart",
+						"field",
+						"upload"
 					]
 				},
 				"description": ""
@@ -151,6 +281,73 @@
 					]
 				},
 				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/upload/multipart",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "testing.zip"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/upload/multipart",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"upload",
+						"multipart"
+					]
+				},
+				"description": null
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8000/post/unirest/multipart/upload/multipart",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000//post/unirest/multipart/upload/multipart",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"",
+						"post",
+						"unirest",
+						"multipart",
+						"upload",
+						"multipart"
+					]
+				},
+				"description": null
 			},
 			"response": []
 		}

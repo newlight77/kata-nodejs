@@ -16,7 +16,7 @@ lokiUtil.cleanFolder(UPLOAD_PATH);
 
 const save = async function (data) {
   winston.info(data, 'data');
-  
+
   try {
     const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
     const result = col.insert(data);
@@ -24,12 +24,14 @@ const save = async function (data) {
     db.saveDatabase();
 
     if (Array.isArray(result) ) {
+      winston.info('result', result);
       return result.map(x => ({
         id: x.$loki,
         fileName: x.filename,
         originalName: x.originalname
       }));
     } else {
+      winston.info('result', result);
       return {
         id: result.$loki,
         fileName: result.filename,
@@ -45,6 +47,7 @@ const save = async function (data) {
 const findAll = async function() {
   try {
     const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
+    // winston.info('result', col.data);
     return col.data;
   } catch (err) {
     winston.error('error while retrieving files');
@@ -55,7 +58,7 @@ const get = async function (id, httpResponse) {
     try {
       const col = await lokiUtil.loadCollection(COLLECTION_NAME, db);
       const result = col.get(id);
-
+      winston.info('result', result);
       if (!result) {
         httpResponse.sendStatus(404);
         return;

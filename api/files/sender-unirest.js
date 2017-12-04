@@ -1,6 +1,7 @@
 'use strict';
 
 var winston = require('winston');
+var querystring = require('querystring');
 var fs = require('fs');
 var unirest = require('unirest');
 var request = require('request');
@@ -18,12 +19,12 @@ var initRoutes = function (app) {
     .multipart([{
       "body": fs.createReadStream("./fs.gz")
     }])
-    .end(function (res) {
-      if (res.error) {
-        throw new Error(res.error);
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
       }
-      winston.info(res.body);
-      httpResponse.send(res);
+      winston.info(response.body);
+      httpResponse.send(response);
     });
   });
 
@@ -37,12 +38,12 @@ var initRoutes = function (app) {
     .multipart([{
       "body": fs.createReadStream("./fs.gz")
     }])
-    .end(function (res) {
-      if (res.error) {
-        throw new Error(res.error);
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
       }
-      winston.info(res.body);
-      httpResponse.send(res);
+      winston.info(response.body);
+      httpResponse.send(response);
     });
   });
 
@@ -55,9 +56,12 @@ var initRoutes = function (app) {
     })
     .attach('file', './fs.gz')
     // .attach('file', fs.createReadStream('./fs.gz'))  // Same as above.
-    .end(function (res) {
-      winston.info(res.body);
-      httpResponse.send(res.body);
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      winston.info('body', response.body);
+      httpResponse.send(response.body);
     });
   });
 
@@ -69,9 +73,27 @@ var initRoutes = function (app) {
       name: 'kong'
     })
     .attach('file', 'http://localhost:8000/header.jpg')
-    .end(function (res) {
-      winston.info(res.body);
-      httpResponse.send(res.body);
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      winston.info(response.body);
+      httpResponse.send(response.body);
+    });
+  });
+
+  app.post("/unirest/attach/upload", function(httpRequest, httpResponse) {
+    winston.info('/unirest/attach/upload');
+    unirest.post('http://localhost:8080/upload?filename=header.jpg')
+    // .headers({'Content-Type': 'multipart/form-data'})
+    .header('Accept', 'application/json')
+    .attach('file', 'http://localhost:8000/header.jpg')
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      console.log(response.body);
+      httpResponse.send("Successfully uploaded!");
     });
   });
 
@@ -79,34 +101,45 @@ var initRoutes = function (app) {
   app.post("/unirest/multipart/upload", function(httpRequest, httpResponse) {
     winston.info('/unirest/multipart/upload');
     unirest("POST", "http://localhost:8080/upload/multipart")
-    .header({
-      "content-type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
-    })
+    // .header({
+    //   "content-type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    // })
+    .headers({'Content-Type': 'multipart/form-data'})
     .multipart([{
       "body": fs.createReadStream("./fs.gz")
     }])
-    // .field({
-    //   files: 'http://localhost:8000/header.jpg'
-    // })
-    .end(function (res) {
-      if (res.error) {
-        throw new Error(res.error);
+    .end(function (response) {
+      if (response.error) {
+        throw new Error(response.error);
       }
-      winston.info(res.body);
-      httpResponse.send(res);
+      winston.info(response.body);
+      // httpResponse.send(res);
+      httpResponse.send("Successfully uploaded!");
     });
   });
 
-  // KO
-  app.post("/unirest/attach/upload", function(httpRequest, httpResponse) {
-    winston.info('/unirest/attach/upload');
-    unirest.post('http://localhost:8080/upload?filename=header.jpg')
-    .headers({'Content-Type': 'multipart/form-data'})
-    .attach('file', 'http://localhost:8000/header.jpg')
+  //KO
+  app.post("/unirest/multipart/field/upload", function(httpRequest, httpResponse) {
+    winston.info('/unirest/multipart/field/upload');
+    unirest("POST", "http://localhost:8080/upload/multipart")
+    // .header({
+    //   "content-type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+    // })
+    // .headers({'Content-Type': 'multipart/form-data'})
+    .header('Accept', 'application/json')
+    .field({
+      files: fs.createReadStream("./fs.gz")
+    })
     .end(function (response) {
-      console.log(response.body);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+      winston.info(response.body);
+      // httpResponse.send(response);
+      httpResponse.send("Successfully uploaded!");
     });
   });
+
 };
 
 module.exports.initRoutes = initRoutes;
