@@ -1,0 +1,10 @@
+{
+  "host" : "localhost",
+  "port" : 9042,
+  "keyspace" : "docker",
+  "user" : "",
+  "password" : "",
+  "onlytables" : "cron,role,temp",
+  "excludetables" : "role,access,temp",
+  "exportdir" : "./data"
+}
