@@ -4,7 +4,7 @@
   "keyspace" : "docker",
   "user" : "",
   "password" : "",
-  "onlytables" : "cron,role,temp",
-  "excludetables" : "role,access,temp",
+  "onlytables" : "cron,role,temp,access",
+  "excludetables" : "",
   "exportdir" : "./data"
 }
