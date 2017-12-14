@@ -19,17 +19,12 @@ let systemClient = new cassandra.Client({
 let listTables = function () {
   return systemClient.connect()
       .then(function (){
-          let systemQuery = "SELECT columnfamily_name as table_name FROM system.schema_columnfamilies WHERE keyspace_name = ?";
-          if (systemClient.metadata.keyspaces.system_schema) {
-              systemQuery = "SELECT table_name FROM system_schema.tables WHERE keyspace_name = ?";
-          }
-
+          let systemQuery = "SELECT table_name FROM system_schema.tables WHERE keyspace_name = ?";
           console.log('Finding tables in keyspace: ' + config.keyspace);
           return systemClient.execute(systemQuery, [config.keyspace]);
       })
       .then(function (result){
           console.log('Completed exporting all tables from keyspace: ' + config.keyspace);
-
           return new Promise(resolve => {
               let tables = [];
               for(let i = 0; i < result.rows.length; i++) {
@@ -48,20 +43,6 @@ let listTables = function () {
 let getTableInfo = function (table) {
   console.log("getTableInfo : ", table);
   return systemClient.metadata.getTable(config.keyspace, table);
-  // .then(function (tableInfo) {
-  //   // console.log("tableInfo : ", tableInfo);
-  //   if (!tableInfo) {
-  //     // console.log("tableInfo : ", tableInfo);
-  //       return tableInfo;
-  //   }
-  //   return new Promise(resolve => {
-  //       console.log(`Retrieved tableInfo ${tableInfo} from keyspace ${config.keyspace} `);
-  //       resolve(tableInfo);
-  //   });
-  // })
-  // .catch(function (err){
-  //     reject(err);
-  // });
 };
 
 let gracefulShutdown = function() {

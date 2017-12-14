@@ -4,7 +4,17 @@
   "keyspace" : "docker",
   "user" : "",
   "password" : "",
-  "onlytables" : "cron,role,temp,access",
+  "tables" : [
+    {
+      "name" : "temp",
+      "maxSize" : "1000"
+    },
+    {
+      "name" : "cron",
+      "maxSize" : "1000",
+      "exclude" : true
+    }
+  ],
   "excludetables" : "",
   "exportdir" : "./data"
 }

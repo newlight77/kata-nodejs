@@ -4,7 +4,7 @@
 const fs = require('fs');
 const jsonStream = require('JSONStream');
 const cassandra = require('cassandra-driver');
-const _ = require('lodash');
+const color = require('chalk');
 
 let config = require('./config.js');
 
@@ -25,44 +25,59 @@ let client = new cassandra.Client({
   protocolOptions: {port: [config.port]}
 });
 
+let getMaxSize = function (table) {
+  let max = Number.MAX_VALUE;
+  let tables = Object.values(config.tables)
+  .filter(entry => entry.name == table);
+  // .map(entry => entry.maxSize);
+  if (tables.length > 0) {
+    max = tables.pop().maxSize;
+    if (!max) {
+      max = Number.MAX_VALUE;
+    }
+  }
+  return max;
+}
+
+function buildQuery (tableInfo, keys) {
+  let values = ',?'.repeat(keys.length-1);
+  return 'INSERT INTO "' + tableInfo.name + '" ("' + keys.join('","') + '") VALUES (?' + values + ')';
+}
+
+function isPlainObject(o) {
+  return !!o
+  	&& typeof o === 'object'
+  	&& Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function bufferFrom(value) {
+  if (value.type === 'Buffer') {
+      return Buffer.from(value);
+  }
+  else {
+      return values.forEach(columns => {
+        console.log('columns[key].type ', columns[key].type );
+        if (isPlainObject(column[key]) && columns[key].type === 'Buffer') {
+            columns[key] = Buffer.from(columns[key]);
+        }
+      });
+  }
+}
+
 function buildTableQueryForDataRow(tableInfo, row) {
     var queries = [];
-    var isCounterTable = _.some(tableInfo.columns, function(column) {return column.type.code === 5;});
-    row = _.omitBy(row, function(item) {return item === null});
-    var query = 'INSERT INTO "' + tableInfo.name + '" ("' + _.keys(row).join('","') + '") VALUES (?' + _.repeat(',?', _.keys(row).length-1) + ')';
-    var params = _.values(row);
-    if (isCounterTable) {
-        var primaryKeys = [];
-        primaryKeys = primaryKeys.concat(_.map(tableInfo.partitionKeys, function(item){return item.name}));
-        primaryKeys = primaryKeys.concat(_.map(tableInfo.clusteringKeys, function(item){return item.name}));
-        var primaryKeyFields = _.pick(row, primaryKeys);
-        var otherKeyFields = _.omit(row, primaryKeys);
-        var setQueries = _.map(_.keys(otherKeyFields), function(key){
-            return '"'+ key +'"="'+ key +'" + ?';
-        });
-        var whereQueries = _.map(_.keys(primaryKeyFields), function(key){
-            return '"'+ key +'"=?';
-        });
-        query = 'UPDATE "' + tableInfo.name + '" SET ' + setQueries.join(', ') + ' WHERE ' + whereQueries.join(' AND ');
-        params = _.values(otherKeyFields).concat(_.values(primaryKeyFields));
-    }
-    params = _.map(params, function(param){
-        if (_.isPlainObject(param)) {
-            if (param.type === 'Buffer') {
-                return Buffer.from(param);
-            }
-            else {
-                var omittedParams = _.omitBy(param, function(item) {return item === null});
-                for (key in omittedParams) {
-                    if (_.isObject(omittedParams[key]) && omittedParams[key].type === 'Buffer') {
-                        omittedParams[key] = Buffer.from(omittedParams[key]);
-                    }
-                }
-                return omittedParams;
-            }
-        }
-        return param;
+
+    row = Object.entries(row).filter(column => column !== null);
+    let keys = row.map(entry => entry[0]);
+    let values = row.map(entry => entry[1]);
+    let query = buildQuery(tableInfo, keys);
+    let params = values.map(value => {
+      if (isPlainObject(value)) {
+          return bufferFrom(value);
+      }
+      return value;
     });
+
     return {
         query: query,
         params: params,
@@ -73,32 +88,48 @@ let importSingleTable = function (table, tableInfo) {
       return new Promise(function(resolve, reject) {
           console.log('importSingleTable : ', table);
 
-          let jsonfile = fs.createReadStream('data/' + table + '.json', {encoding: 'utf8'})
+          var processed = 0;
+          var startTime = Date.now();
+          let maxSize = getMaxSize(table);
+
+          let jsonfile = fs.createReadStream(config.exportdir + '/' + table + '.json', {encoding: 'utf8'})
           .on('error', function (err) {
               reject(err);
           })
           .on('end', function () {
-            var timeTaken = (Date.now() - startTime) / 1000;
-            var throughput = timeTaken ? processed / timeTaken : 0.00;
-            console.log('Done with table, throughput: ' + throughput.toFixed(1) + ' rows/s');
+            var elapsedTime = (Date.now() - startTime) / 1000;
+            var rate = elapsedTime ? processed / elapsedTime : 0.00;
+            console.log(`imported into table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
             resolve();
           });
 
           let readStream = jsonfile.pipe(jsonStream.parse('*'));
 
-          var processed = 0;
-          var startTime = Date.now();
           readStream.on('data', function(row) {
-              processed++;
               var query = buildTableQueryForDataRow(tableInfo, row);
-              client.execute(query.query, query.params, { prepare: true})
-              .then(function () {
-                  console.log('Streaming ' + processed + ' rows to table: ' + table);
-                  console.log('imported row : ', row);
-              })
-              .catch(function (err) {
-                  reject(err);
-              });
+              console.log('processed < maxSize', processed < maxSize);
+              if (processed < maxSize) {
+                client.execute(query.query, query.params, { prepare: true})
+                // .then(function () {
+                    if (processed%100 == 0) {
+                      var elapsedTime = (Date.now() - startTime) / 1000;
+                      var rate = elapsedTime ? processed / elapsedTime : 0.00;
+                      console.log(`imported into table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+                    }
+                    processed++;
+                // })
+                // .catch(function (err) {
+                //     reject(err);
+                // })
+                ;
+              } else {
+                var elapsedTime = (Date.now() - startTime) / 1000;
+                var rate = elapsedTime ? processed / elapsedTime : 0.00;
+                console.log('testasst');
+                console.log(`exported from table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+                resolve();
+                throw `${color.red("reached max")}`;
+              }
           });
 
       });

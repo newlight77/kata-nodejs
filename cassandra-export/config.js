@@ -2,8 +2,8 @@
 
 let config = require('./config.json');
 
-let host = process.env.HOST || '127.0.0.1';
-let port = process.env.PORT || 9042;
+let host = process.env.HOST;
+let port = process.env.PORT;
 let keyspace = process.env.KEYSPACE;
 let user = process.env.USER;
 let password = process.env.PASSWORD;

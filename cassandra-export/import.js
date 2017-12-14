@@ -7,18 +7,9 @@ const importService = require('./import-service');
 let config = require('./config.js');
 
 let shouldImport = function (table) {
-  let onlytables;
-  let excludetables;
-  if (config.onlytables) {
-    onlytables = config.onlytables.split(',');
-  }
-  if (config.excludetables) {
-    excludetables = config.excludetables.split(',');
-  }
-  if ((onlytables == undefined || onlytables.length == 0 || onlytables.includes(table))
-    && (excludetables == undefined || excludetables.length == 0 || !excludetables.includes(table))) {
-    return true;
-  }
+  let tables = Object.values(config.tables)
+  .filter(entry => (!entry.exclude == true) && entry.name == table);
+  return tables.length > 0;
 }
 
 let alives = function () {
@@ -55,8 +46,6 @@ if (cluster.isMaster) {
 
   cassandraService.listTables()
   .then(function (tables) {
-      console.log('list tables', tables.join(', '));
-      tables = ['cron', 'access', 'role', 'temp', 'dbversion'];
       tables.forEach( table => {
         if (shouldImport(table)) {
           cassandraService.getTableInfo(table)
@@ -65,7 +54,6 @@ if (cluster.isMaster) {
                 cluster.fork().send({table: table, tableInfo:tableInfo});
             }
           });
-          // cluster.fork().send(table);
         }
       });
   });
