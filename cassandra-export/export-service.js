@@ -7,6 +7,7 @@ const cassandra = require('cassandra-driver');
 const color = require('chalk');
 
 let config = require('./config.js');
+let util = require('./util');
 
 let authProvider;
 
@@ -25,30 +26,13 @@ let client = new cassandra.Client({
   protocolOptions: {port: [config.port]}
 });
 
-let createJsonFile = function (table) {
-  let jsonFile = fs.createWriteStream('data/' + table + '.json');
+function createJsonFile (table) {
+  let jsonFile = fs.createWriteStream(config.exportdir + table + '.json');
   jsonFile.on('error', function (err) {
       console.log('err ' + err);
       reject(err);
   });
-  jsonFile.on('end', function () {
-      console.log('jsonFile end ');
-  });
   return jsonFile;
-}
-
-let getMaxSize = function (table) {
-  let max = Number.MAX_VALUE;
-  let tables = Object.values(config.tables)
-  .filter(entry => entry.name == table);
-  // .map(entry => entry.maxSize);
-  if (tables.length > 0) {
-    max = tables.pop().maxSize;
-    if (!max) {
-      max = Number.MAX_VALUE;
-    }
-  }
-  return max;
 }
 
 let exportSingleTable = function (table) {
@@ -57,7 +41,7 @@ let exportSingleTable = function (table) {
 
           let processed = 0;
           let startTime = Date.now();
-          let maxSize = getMaxSize(table);
+          let maxSize = util.getMaxSize(table);
 
           let writeStream = jsonStream.stringify('[', ',', ']');
           writeStream.pipe(createJsonFile(table));
@@ -74,24 +58,18 @@ let exportSingleTable = function (table) {
                 });
                 writeStream.write(rowObject);
                 if (processed%100 == 0) {
-                  var elapsedTime = (Date.now() - startTime) / 1000;
-                  var rate = elapsedTime ? processed / elapsedTime : 0.00;
-                  console.log(`exported from table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+                  util.metrics(table, startTime, processed);
                 }
                 processed++;
               } else {
-                var elapsedTime = (Date.now() - startTime) / 1000;
-                var rate = elapsedTime ? processed / elapsedTime : 0.00;
-                console.log(`exported from table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+                util.metrics(table, startTime, processed);
                 throw `${color.red("reached max")}`;
               }
             }
           })
           .on('end', function () {
             console.log('Ending writes to : ' + table + '.json');
-            var elapsedTime = (Date.now() - startTime) / 1000;
-            var rate = elapsedTime ? processed / elapsedTime : 0.00;
-            console.log(`exported from table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+            util.metrics(table, startTime, processed);
             writeStream.end();
             resolve();
           })

@@ -7,6 +7,7 @@ const cassandra = require('cassandra-driver');
 const color = require('chalk');
 
 let config = require('./config.js');
+let util = require('./util');
 
 let authProvider;
 
@@ -25,29 +26,10 @@ let client = new cassandra.Client({
   protocolOptions: {port: [config.port]}
 });
 
-let getMaxSize = function (table) {
-  let max = Number.MAX_VALUE;
-  let tables = Object.values(config.tables)
-  .filter(entry => entry.name == table);
-  // .map(entry => entry.maxSize);
-  if (tables.length > 0) {
-    max = tables.pop().maxSize;
-    if (!max) {
-      max = Number.MAX_VALUE;
-    }
-  }
-  return max;
-}
 
 function buildQuery (tableInfo, keys) {
   let values = ',?'.repeat(keys.length-1);
   return 'INSERT INTO "' + tableInfo.name + '" ("' + keys.join('","') + '") VALUES (?' + values + ')';
-}
-
-function isPlainObject(o) {
-  return !!o
-  	&& typeof o === 'object'
-  	&& Object.prototype.toString.call(o) === '[object Object]';
 }
 
 function bufferFrom(value) {
@@ -57,7 +39,7 @@ function bufferFrom(value) {
   else {
       return values.forEach(columns => {
         console.log('columns[key].type ', columns[key].type );
-        if (isPlainObject(column[key]) && columns[key].type === 'Buffer') {
+        if (util.isPlainObject(column[key]) && columns[key].type === 'Buffer') {
             columns[key] = Buffer.from(columns[key]);
         }
       });
@@ -72,7 +54,7 @@ function buildTableQueryForDataRow(tableInfo, row) {
     let values = row.map(entry => entry[1]);
     let query = buildQuery(tableInfo, keys);
     let params = values.map(value => {
-      if (isPlainObject(value)) {
+      if (util.isPlainObject(value)) {
           return bufferFrom(value);
       }
       return value;
@@ -90,16 +72,14 @@ let importSingleTable = function (table, tableInfo) {
 
           var processed = 0;
           var startTime = Date.now();
-          let maxSize = getMaxSize(table);
+          let maxSize = util.getMaxSize(table);
 
           let jsonfile = fs.createReadStream(config.exportdir + '/' + table + '.json', {encoding: 'utf8'})
           .on('error', function (err) {
               reject(err);
           })
           .on('end', function () {
-            var elapsedTime = (Date.now() - startTime) / 1000;
-            var rate = elapsedTime ? processed / elapsedTime : 0.00;
-            console.log(`imported into table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+            util.metrics(table, startTime, processed);
             resolve();
           });
 
@@ -109,24 +89,14 @@ let importSingleTable = function (table, tableInfo) {
               var query = buildTableQueryForDataRow(tableInfo, row);
               console.log('processed < maxSize', processed < maxSize);
               if (processed < maxSize) {
-                client.execute(query.query, query.params, { prepare: true})
-                // .then(function () {
-                    if (processed%100 == 0) {
-                      var elapsedTime = (Date.now() - startTime) / 1000;
-                      var rate = elapsedTime ? processed / elapsedTime : 0.00;
-                      console.log(`imported into table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
-                    }
-                    processed++;
-                // })
-                // .catch(function (err) {
-                //     reject(err);
-                // })
-                ;
+                client.execute(query.query, query.params, { prepare: true});
+                if (processed%100 == 0) {
+                  util.metrics(table, startTime, processed);
+                }
+                processed++;
               } else {
-                var elapsedTime = (Date.now() - startTime) / 1000;
-                var rate = elapsedTime ? processed / elapsedTime : 0.00;
-                console.log('testasst');
-                console.log(`exported from table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+                jsonfile.pause();
+                util.metrics(table, startTime, processed);
                 resolve();
                 throw `${color.red("reached max")}`;
               }
