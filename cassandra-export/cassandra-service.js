@@ -43,7 +43,26 @@ let listTables = function () {
       .catch(function (err){
           console.log(err);
       });
-}
+};
+
+let getTableInfo = function (table) {
+  console.log("getTableInfo : ", table);
+  return systemClient.metadata.getTable(config.keyspace, table);
+  // .then(function (tableInfo) {
+  //   // console.log("tableInfo : ", tableInfo);
+  //   if (!tableInfo) {
+  //     // console.log("tableInfo : ", tableInfo);
+  //       return tableInfo;
+  //   }
+  //   return new Promise(resolve => {
+  //       console.log(`Retrieved tableInfo ${tableInfo} from keyspace ${config.keyspace} `);
+  //       resolve(tableInfo);
+  //   });
+  // })
+  // .catch(function (err){
+  //     reject(err);
+  // });
+};
 
 let gracefulShutdown = function() {
   systemClient.shutdown()
@@ -54,7 +73,8 @@ let gracefulShutdown = function() {
           console.log(err);
           process.exit(1);
       });
-}
+};
 
 module.exports.listTables = listTables;
+module.exports.getTableInfo = getTableInfo;
 module.exports.gracefulShutdown = gracefulShutdown;
