@@ -1,45 +1,29 @@
 const cluster = require('cluster');
 const http = require('http');
 const numCPUs = require('os').cpus().length;
-const cassandraService = require('./cassandra-service');
-const exportService = require('./export-service');
+const color = require('chalk');
 
-let config = require('./config.js');
-
-let shouldExport = function (table) {
-  let tables = Object.values(config.tables)
-  .filter(entry => (!entry.exclude == true) && entry.name == table);
-  // .map(entry => entry.name);
-  return tables.length > 0;
-}
-
-let alives = function () {
-  let count = 0;
-  for (const id in cluster.workers) {
-    if (!cluster.workers[id].isDead()) {
-      console.log('woprker is alive', id);
-      count++;
-    }
-  }
-  return count;
-}
+const cassandraService = require('./src/cassandra-service');
+const exportService = require('./src/export-service');
+const util = require('./src/util');
+let config = require('./src/config');
 
 function messageHandler(table) {
   exportService.exportSingleTable(table)
   .then(function resolve() {
-    console.log('success exporting table :', table);
+    console.log(`Success exporting table : ${color.yellow(table)}`);
     process.send('done');
   }, function error() {
-    console.log('Error exporting table :', table);
+    console.log(`${color.yellow('Error exporting table : ')}${color.yellow(table)}`);
   });
 }
 
 if (cluster.isMaster) {
-  console.log(`Master ${process.pid} is running`);
+  console.log(`Master ${color.blue(process.pid)} is running`);
 
   setInterval(() => {
-    let nbAlives = alives();
-    console.log('nbAlives=', nbAlives);
+    let nbAlives = util.alives(cluster);
+    console.log(`nbAlives : ${color.blue(nbAlives)}`);
     if (nbAlives == 0) {
       process.exit();
     }
@@ -48,7 +32,7 @@ if (cluster.isMaster) {
   cassandraService.listTables()
   .then(function (tables){
       tables.forEach( table => {
-        if (shouldExport(table)) {
+        if (util.shouldProcessTable(table)) {
           cluster.fork().send(table);
         }
       });
@@ -89,7 +73,7 @@ if (cluster.isMaster) {
   console.log(`Worker ${process.pid} started`);
 
   process.on('message', (table) => {
-    console.log(`Worker ${process.pid} received table :`, table);
+    console.log(`Worker ${color.blue(process.pid)} received table : ${color.yellow(table)}`);
     messageHandler(table);
   });
 

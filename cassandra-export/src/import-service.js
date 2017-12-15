@@ -6,17 +6,13 @@ const jsonStream = require('JSONStream');
 const cassandra = require('cassandra-driver');
 const color = require('chalk');
 
-let config = require('./config.js');
-let util = require('./util');
+const util = require('./util');
+let config = require('./config');
 
 let authProvider;
 
 if (config.user && config.password) {
     authProvider = new cassandra.auth.PlainTextAuthProvider(config.user, config.password);
-}
-
-if (!fs.existsSync(config.exportdir)){
-    fs.mkdirSync(config.exportdir);
 }
 
 let client = new cassandra.Client({
@@ -38,7 +34,7 @@ function bufferFrom(value) {
   }
   else {
       return values.forEach(columns => {
-        console.log('columns[key].type ', columns[key].type );
+        console.log(`columns[key].type ${color.yellow(columns[key].type)}`);
         if (util.isPlainObject(column[key]) && columns[key].type === 'Buffer') {
             columns[key] = Buffer.from(columns[key]);
         }
@@ -68,13 +64,13 @@ function buildTableQueryForDataRow(tableInfo, row) {
 
 let importSingleTable = function (table, tableInfo) {
       return new Promise(function(resolve, reject) {
-          console.log('importSingleTable : ', table);
+          console.log(`importSingleTable ${color.yellow(table)}`);
 
           var processed = 0;
           var startTime = Date.now();
           let maxSize = util.getMaxSize(table);
 
-          let jsonfile = fs.createReadStream(config.exportdir + '/' + table + '.json', {encoding: 'utf8'})
+          let jsonfile = fs.createReadStream(config.dataDir + '/' + table + '.json', {encoding: 'utf8'})
           .on('error', function (err) {
               reject(err);
           })
@@ -87,7 +83,6 @@ let importSingleTable = function (table, tableInfo) {
 
           readStream.on('data', function(row) {
               var query = buildTableQueryForDataRow(tableInfo, row);
-              console.log('processed < maxSize', processed < maxSize);
               if (processed < maxSize) {
                 client.execute(query.query, query.params, { prepare: true});
                 if (processed%100 == 0) {
@@ -98,7 +93,7 @@ let importSingleTable = function (table, tableInfo) {
                 jsonfile.pause();
                 util.metrics(table, startTime, processed);
                 resolve();
-                throw `${color.red("reached max")}`;
+                throw `${color.red("MaxSize reached! please set a higher maxSize in ")} ${color.yellow("config.json")}`;
               }
           });
 
@@ -111,7 +106,7 @@ let gracefulShutdown = function() {
           process.exit();
       })
       .catch(function (err){
-          console.log(err);
+          console.log(`error : ${color.red(err)}`);
           process.exit(1);
       });
 }

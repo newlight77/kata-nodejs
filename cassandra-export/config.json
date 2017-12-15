@@ -6,15 +6,17 @@
   "password" : "",
   "tables" : [
     {
-      "name" : "temp",
-      "maxSize" : "1000"
+      "name" : "table1",
+      "maxSize" : "1"
     },
     {
-      "name" : "cron",
-      "maxSize" : "1000",
+      "name" : "table2"
+    },
+    {
+      "name" : "table3",
+      "maxSize" : "1",
       "exclude" : true
     }
   ],
-  "excludetables" : "",
-  "exportdir" : "./data"
+  "dataDir" : "./data"
 }
