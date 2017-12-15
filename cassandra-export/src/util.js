@@ -2,7 +2,7 @@
 
 const color = require('chalk');
 
-let config = require('./config.json');
+let config = require('./config');
 
 function isPlainObject(o) {
   return !!o
@@ -26,9 +26,31 @@ function getMaxSize (table) {
 function metrics(table, startTime, processed) {
   var elapsedTime = (Date.now() - startTime) / 1000;
   var rate = elapsedTime ? processed / elapsedTime : 0.00;
-  console.log(`imported into table : ${color.blue(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+  console.log(`imported into table : ${color.yellow(table)} , processed : ${color.blue(processed)} , timeElapsed : ${color.blue(elapsedTime.toFixed(2))} sec , rate : ${color.blue(rate.toFixed(2))} rows/s`);
+}
+
+function alives (cluster) {
+  let count = 0;
+  for (const id in cluster.workers) {
+    if (!cluster.workers[id].isDead()) {
+      console.log(`Worker ${color.blue(id)} is alive `);
+      count++;
+    }
+  }
+  return count;
+}
+
+function shouldProcessTable (table) {
+  if (!config.tables || config.tables == 0) {
+    return true;
+  }
+  let tables = Object.values(config.tables)
+  .filter(entry => (!entry.exclude == true) && entry.name == table);
+  return tables.length > 0;
 }
 
 module.exports.isPlainObject = isPlainObject;
 module.exports.getMaxSize = getMaxSize;
 module.exports.metrics = metrics;
+module.exports.alives = alives;
+module.exports.shouldProcessTable = shouldProcessTable;
