@@ -4,14 +4,7 @@ const numCPUs = require('os').cpus().length;
 const color = require('chalk');
 const globby = require("globby");
 
-const streamingService = require('./streaming-service');
-const util = require('./util');
-
-function messageHandler(file) {
-  console.log(`handling file : ${color.blue(file)}`);
-  streamingService.readFromFile(file);
-  process.send('done');
-}
+const util = require('./src/util');
 
 if (cluster.isMaster) {
   console.log(`Master ${color.blue(process.pid)} is running`);
@@ -64,7 +57,8 @@ if (cluster.isMaster) {
   console.log(`Worker ${process.pid} started`);
   process.on('message', (file) => {
     console.log(`Worker ${color.blue(process.pid)} received file : ${color.yellow(file)}`);
-    messageHandler(file);
+    const handler = require('./src/file-streaming-handler');
+    handler.handlerMessage(file);
   });
 
   process.on("disconnect", function() {
