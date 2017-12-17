@@ -4,18 +4,11 @@ const numCPUs = require('os').cpus().length;
 const color = require('chalk');
 const globby = require("globby");
 
+const handler = require('./src/app-cluster-handler');
 const util = require('./src/util');
 
 if (cluster.isMaster) {
   console.log(`Master ${color.blue(process.pid)} is running`);
-
-  setInterval(() => {
-    let nbAlives = util.alives(cluster);
-    console.log(`nbAlives : ${color.blue(nbAlives)}`);
-    if (nbAlives == 0) {
-      process.exit();
-    }
-  }, 3000);
 
   globby( ['./data/**.json'])
       .then(files => {
@@ -25,43 +18,26 @@ if (cluster.isMaster) {
           });
        });
 
-  cluster.on('fork', () => {
-    console.log('a worker has been forked');
-  });
-
-  cluster.on('setup', () => {
-    console.log('cluster is setting up');
-  });
-
   cluster.on('message', (worker, message, handle) => {
     console.log(`message: worker=${worker.process.pid} message=${message} handle=${handle} args=${arguments.length}`);
     if (message === 'done') {
       console.log('received done message');
       worker.disconnect();
+
+      let nbAlives = util.alives(cluster);
+      console.log(`nbAlives : ${color.blue(nbAlives)}`);
+      if (nbAlives == 0) {
+        process.exit();
+      }
     }
   });
 
-  cluster.on('online', (worker) => {
-    console.log(`Worker ${worker.process.pid} is online`);
-  });
-
-  cluster.on('death', function(worker) {
-    console.log(`worker ${worker.process.pid} died`);
-  });
-
-  cluster.on('exit', (worker, code, signal) => {
-    console.log(`worker ${worker.process.pid} died`);
-  });
 
 } else {
   console.log(`Worker ${process.pid} started`);
   process.on('message', (file) => {
     console.log(`Worker ${color.blue(process.pid)} received file : ${color.yellow(file)}`);
-    const handler = require('./src/file-streaming-handler');
     handler.handlerMessage(file);
   });
 
-  process.on("disconnect", function() {
-    console.log("worker shutdown");
-  });
 }
