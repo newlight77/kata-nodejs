@@ -1,0 +1,26 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "mongo": {
+    "host": "localhost",
+    "port": 27017,
+    "url": "mongodb://loopback:loopback@127.0.0.1:27017/node",
+    "database": "node",
+    "password": "loopback",
+    "name": "mongo",
+    "user": "loopback",
+    "connector": "mongodb"
+  },
+  "mongolab": {
+    "host": "ds061671.mlab.co",
+    "port": 61671,
+    "url": "mongodb://loopback:loopback@ds061671.mlab.com:61671/node",
+    "database": "node",
+    "password": "loopback",
+    "name": "mongolab",
+    "user": "loopback",
+    "connector": "mongodb"
+  }
+}
