@@ -41,5 +41,13 @@
   "CoffeeShop": {
     "dataSource": "mongo",
     "public": true
+  },
+  "Reviewer": {
+    "dataSource": "mongo",
+    "public": true
+  },
+  "Review": {
+    "dataSource": "mongo",
+    "public": true
   }
 }
