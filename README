@@ -23,7 +23,7 @@ docker-compose up -d arangodb
 
 
 ```
-→ docker exec -it loopbackdemo_mongodb_1 bash
+→ docker exec -it nodejsdemo_mongodb_1 bash
 root@mongodb:/# mongo
 MongoDB shell version v3.6.0
 connecting to: mongodb://127.0.0.1:27017

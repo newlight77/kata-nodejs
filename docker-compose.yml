@@ -6,6 +6,8 @@ services:
     hostname: mongodb
     ports:
       - "27017:27017"
+    volumes:
+      - /tmp/mongodb:/data/db
   arangodb:
     image: arangodb:latest
     hostname: arangodb
@@ -24,3 +26,10 @@ services:
       - "7687:7687"
     volumes:
       - /tmp/neo4j:/data
+  cassandra:
+    image: cassandra:latest
+    hostname: cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - /tmp/cassandra:/data
