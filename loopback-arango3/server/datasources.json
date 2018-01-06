@@ -1,0 +1,15 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "arango": {
+    "name": "arango",
+    "host": "localhost",
+    "port": 8529,
+    "database": "node",
+    "user": "node@node",
+    "password": "password",
+    "connector": "loopback-connector-arangodb-3"
+  }
+}

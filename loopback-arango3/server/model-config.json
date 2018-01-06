@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "sources": [
+      "loopback/common/models",
+      "loopback/server/models",
+      "../common/models",
+      "./models"
+    ],
+    "mixins": [
+      "loopback/common/mixins",
+      "loopback/server/mixins",
+      "../common/mixins",
+      "./mixins"
+    ]
+  },
+  "User": {
+    "dataSource": "arango"
+  },
+  "AccessToken": {
+    "dataSource": "arango",
+    "public": false
+  },
+  "ACL": {
+    "dataSource": "arango",
+    "public": false
+  },
+  "RoleMapping": {
+    "dataSource": "arango",
+    "public": false,
+    "options": {
+      "strictObjectIDCoercion": true
+    }
+  },
+  "Role": {
+    "dataSource": "arango",
+    "public": false
+  },
+  "Note": {
+    "dataSource": "arango"
+  }
+}
